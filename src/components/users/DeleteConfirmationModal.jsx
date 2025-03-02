@@ -1,5 +1,4 @@
 
-// src/components/users/DeleteConfirmationModal.jsx
 import { motion } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 

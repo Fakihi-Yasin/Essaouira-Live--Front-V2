@@ -1,4 +1,4 @@
-// src/components/users/UsersTable.jsx
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
