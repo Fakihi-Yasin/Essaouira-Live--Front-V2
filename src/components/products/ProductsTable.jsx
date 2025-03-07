@@ -565,7 +565,7 @@ const ProductsPage = () => {
 
       setStats({
         totalProducts: total,
-        topSelling: Math.floor(total * 0.1), // Assuming top 10% are top selling
+        topSelling: Math.floor(total * 0.1), 
         lowStock: lowStock,
         totalRevenue: revenue.toFixed(2),
       });
