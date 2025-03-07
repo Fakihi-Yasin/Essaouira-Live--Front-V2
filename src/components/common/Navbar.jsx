@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { ShoppingCart } from "lucide-react";
 
 export default function Navbar() {
   const { isLoggedIn, userRole, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -16,10 +18,24 @@ export default function Navbar() {
     navigate('/');
   };
 
-  // Add debugging if needed
+  // Listen for cart updates from localStorage
   useEffect(() => {
-    console.log("Auth state in Navbar:", { isLoggedIn, userRole });
-  }, [isLoggedIn, userRole]);
+    const handleStorageChange = () => {
+      const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartItems(storedCart);
+    };
+
+    // Initial load
+    handleStorageChange();
+
+    // Listen for storage changes across tabs/windows
+    window.addEventListener('storage', handleStorageChange);
+
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // If auth state is still loading, show minimal navbar or loading state
   if (isLoggedIn === null) {
@@ -50,7 +66,9 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
-            {/* Conditional rendering based on isLoggedIn and userRole */}
+         
+
+            {/* Rest of the existing navigation logic */}
             {!isLoggedIn ? (
               <>
                 <Link
@@ -68,8 +86,28 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* For admin or seller role */}
-                {(userRole === 'admin' || userRole === 'seller') && (
+                {/* Existing logged-in navigation */}
+             
+
+                {(userRole === 'admin' || userRole === 'user' || userRole === 'seller') && (
+                  <>
+                    <Link to="/" className="text-gray-300 hover:text-blue-400 transition-colors">
+                      Home
+                    </Link>
+                    <Link to="/about" className="text-gray-300 hover:text-blue-400 transition-colors">
+                      About
+                    </Link>
+                    {userRole === 'user' && (
+                    <Link
+                      to="/become-seller"
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      Become a Seller
+                    </Link>
+                    )}
+                  </>
+                )}
+                   {(userRole === 'admin' || userRole === 'seller') && (
                   <Link
                     to="/dashboard"
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -78,25 +116,21 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                {/* For regular user role */}
-                {userRole === 'user' && (
-                  <>
-                    <Link to="/" className="text-gray-300 hover:text-blue-400 transition-colors">
-                      Home
-                    </Link>
-                    <Link to="/about" className="text-gray-300 hover:text-blue-400 transition-colors">
-                      About
-                    </Link>
-                    <Link
-                      to="/become-seller"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                    >
-                      Become a Seller
-                    </Link>
-                  </>
+                {(userRole === 'user' || userRole === 'admin' || userRole === 'seller') && (
+                 <Link 
+                 to="/cart" 
+                 className="relative text-gray-300 hover:text-blue-400 transition-colors"
+               >
+                 <ShoppingCart className="w-6 h-6" />
+                 {cartItems.length > 0 && (
+                   <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                     {cartItems.length}
+                   </span>
+                 )}
+               </Link>
                 )}
                 
-                {/* Logout button for all logged in users */}
+                
                 <button
                   onClick={handleLogout}
                   className="text-gray-300 hover:text-blue-400 transition-colors"
@@ -108,7 +142,20 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-4">
+            {/* Mobile Cart Icon */}
+            <Link 
+              to="/cart" 
+              className="relative text-gray-300 hover:text-blue-400 transition-colors"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
+
             <button onClick={toggleMenu} className="text-gray-300 hover:text-blue-400">
               {isMenuOpen ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,7 +178,7 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {/* Conditional rendering for mobile menu */}
+            {/* Rest of the existing mobile navigation logic */}
             {!isLoggedIn ? (
               <>
                 <Link 
@@ -151,7 +198,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* For admin or seller role */}
+                {/* Existing mobile navigation for logged-in users */}
                 {(userRole === 'admin' || userRole === 'seller') && (
                   <Link 
                     to="/dashboard" 
@@ -162,8 +209,7 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                {/* For regular user role */}
-                {userRole === 'user' && (
+                {userRole === 'user'  && (
                   <Link 
                     to="/become-seller" 
                     className="block px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
@@ -173,7 +219,6 @@ export default function Navbar() {
                   </Link>
                 )}
                 
-                {/* Logout button for all logged in users */}
                 <button
                   onClick={() => {
                     handleLogout();

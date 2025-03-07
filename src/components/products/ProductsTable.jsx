@@ -1,39 +1,50 @@
 import { motion } from "framer-motion";
-import { Edit, Search, Trash2, Plus, X, AlertTriangle, DollarSign, Package, TrendingUp } from "lucide-react";
-import { useState, useEffect } from "react";
+import {
+  Edit,
+  Search,
+  Trash2,
+  Plus,
+  X,
+  AlertTriangle,
+  DollarSign,
+  Package,
+  TrendingUp,
+  Image as ImageIcon,
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Header from "../../components/common/Header";
 import StatCard from "../../components/common/StatCard";
 
 // Create axios instance with auth
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: "http://localhost:3000",
 });
 
 // Add auth interceptor
 api.interceptors.request.use(
-  config => {
+  (config) => {
     // Get token from localStorage or your auth management
-    const token = localStorage.getItem('token');
-    
+    const token = localStorage.getItem("token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
-  error => {
+  (error) => {
     return Promise.reject(error);
   }
 );
 
 // Handle auth errors globally
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response && error.response.status === 401) {
       // Redirect to login page or trigger auth refresh
-      console.log('Authentication error, redirecting to login...');
+      console.log("Authentication error, redirecting to login...");
       // You might want to redirect here:
       // window.location.href = '/login';
     }
@@ -48,7 +59,10 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     description: "",
     price: 0,
     quantity: 0,
+    image: null,
   });
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (product && mode === "edit") {
@@ -57,35 +71,87 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         description: product.description || "",
         price: product.price || 0,
         quantity: product.quantity || 0,
+        image: product.image || null,
       });
+      
+      // If there's an existing image URL, set it as preview
+      if (product.imageUrl) {
+        setImagePreview(product.imageUrl);
+      } else {
+        setImagePreview(null);
+      }
     } else {
       setFormData({
         name: "",
         description: "",
         price: 0,
         quantity: 0,
+        image: null,
       });
+      setImagePreview(null);
     }
   }, [product, mode]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === "price" || name === "quantity" ? parseFloat(value) : value
-    });
+    const { name, value, type } = e.target;
+    
+    if (type === "file") {
+      const file = e.target.files[0];
+      if (file) {
+        setFormData({
+          ...formData,
+          image: file,
+        });
+        
+        // Create preview URL for image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]:
+          name === "price" || name === "quantity" ? parseFloat(value) : value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Create FormData for file upload
+    const productFormData = new FormData();
+    productFormData.append("name", formData.name);
+    productFormData.append("description", formData.description);
+    productFormData.append("price", formData.price);
+    productFormData.append("quantity", formData.quantity);
+    
+    if (formData.image && formData.image instanceof File) {
+      productFormData.append("image", formData.image);
+    }
+    
+    onSave(productFormData);
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({
+      ...formData,
+      image: null,
+    });
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         className="bg-gray-800 rounded-xl w-full max-w-md border border-gray-700 shadow-lg"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -95,14 +161,14 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
           <h2 className="text-xl font-semibold text-gray-100">
             {mode === "add" ? "Add New Product" : "Edit Product"}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-200 transition-colors"
           >
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-4">
             <div>
@@ -118,7 +184,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description
@@ -132,7 +198,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -149,7 +215,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Quantity
@@ -165,9 +231,49 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 />
               </div>
             </div>
-       
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Product Image
+              </label>
+              
+              {imagePreview ? (
+                <div className="relative mb-3 border border-gray-700 rounded-lg overflow-hidden">
+                  <img 
+                    src={imagePreview} 
+                    alt="Product preview" 
+                    className="w-full h-40 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 p-1 rounded-full text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center mb-3">
+                  <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
+                  <p className="text-sm text-gray-400">
+                    Drop your image here, or click to browse
+                  </p>
+                </div>
+              )}
+              
+              <input
+                type="file"
+                name="image"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleChange}
+                className={`w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  imagePreview ? "hidden" : "block"
+                }`}
+              />
+            </div>
           </div>
-          
+
           <div className="mt-6 flex justify-end space-x-3">
             <button
               type="button"
@@ -190,12 +296,17 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
 };
 
 // Delete Confirmation Modal
-const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productName }) => {
+const DeleteConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  productName,
+}) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         className="bg-gray-800 rounded-xl w-full max-w-md border border-gray-700 shadow-lg p-6"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -204,15 +315,17 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productName }) =>
         <div className="flex items-center justify-center text-red-500 mb-4">
           <AlertTriangle size={64} />
         </div>
-        
+
         <h3 className="text-xl font-semibold text-gray-100 text-center mb-2">
           Confirm Deletion
         </h3>
-        
+
         <p className="text-gray-300 text-center mb-6">
-          Are you sure you want to delete <span className="font-semibold">{productName}</span>? This action cannot be undone.
+          Are you sure you want to delete{" "}
+          <span className="font-semibold">{productName}</span>? This action
+          cannot be undone.
         </p>
-        
+
         <div className="flex justify-center space-x-4">
           <button
             onClick={onClose}
@@ -238,15 +351,16 @@ const Toast = ({ message, type, onClose }) => {
     const timer = setTimeout(() => {
       onClose();
     }, 4000);
-    
+
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor = type === 'success' 
-    ? 'bg-green-500' 
-    : type === 'error' 
-      ? 'bg-red-500' 
-      : 'bg-blue-500';
+  const bgColor =
+    type === "success"
+      ? "bg-green-500"
+      : type === "error"
+      ? "bg-red-500"
+      : "bg-blue-500";
 
   return (
     <motion.div
@@ -255,8 +369,10 @@ const Toast = ({ message, type, onClose }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50 }}
     >
-      {type === 'success' && <div className="h-2 w-2 rounded-full bg-white"></div>}
-      {type === 'error' && <AlertTriangle size={18} />}
+      {type === "success" && (
+        <div className="h-2 w-2 rounded-full bg-white"></div>
+      )}
+      {type === "error" && <AlertTriangle size={18} />}
       <p>{message}</p>
       <button onClick={onClose} className="ml-4 hover:text-gray-200">
         <X size={18} />
@@ -277,14 +393,14 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    
+
     const filtered = products.filter(
-      (product) => 
-        product.name.toLowerCase().includes(term) || 
+      (product) =>
+        product.name.toLowerCase().includes(term) ||
         product.category?.toLowerCase().includes(term) ||
         product.description?.toLowerCase().includes(term)
     );
-    
+
     setFilteredProducts(filtered);
   };
 
@@ -322,7 +438,7 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Category
+                  Image
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Price
@@ -338,7 +454,10 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
             <tbody className="divide-y divide-gray-700">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
                     No products found
                   </td>
                 </tr>
@@ -354,7 +473,17 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                       {product.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {product.category}
+                      {product.imageUrl ? (
+                        <img 
+                          src={product.imageUrl} 
+                          alt={product.name}
+                          className="h-10 w-10 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-md bg-gray-700 flex items-center justify-center">
+                          <ImageIcon size={18} className="text-gray-400" />
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       ${product.price.toFixed(2)}
@@ -363,13 +492,13 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                       {product.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <button 
+                      <button
                         className="text-indigo-400 hover:text-indigo-300 mr-4"
                         onClick={() => onEdit(product)}
                       >
                         <Edit size={18} />
                       </button>
-                      <button 
+                      <button
                         className="text-red-400 hover:text-red-300"
                         onClick={() => onDelete(product)}
                       >
@@ -395,102 +524,113 @@ const ProductsPage = () => {
     totalProducts: 0,
     topSelling: 0,
     lowStock: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
   });
-  
+
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
-  
+
   // Toast state
-  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
-  
-  const showToast = (message, type = 'success') => {
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const showToast = (message, type = "success") => {
     setToast({ visible: true, message, type });
   };
-  
+
   const hideToast = () => {
     setToast({ ...toast, visible: false });
   };
-  
+
   // Fetch products from API
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/products');
+      const response = await api.get("/products/my-products");
       setProducts(response.data);
-      
+
       // Calculate stats
       const total = response.data.length;
-      const lowStock = response.data.filter(p => p.quantity < 10).length;
-      const revenue = response.data.reduce((sum, product) => sum + (product.price * product.quantity), 0);
-      
+      const lowStock = response.data.filter((p) => p.quantity < 10).length;
+      const revenue = response.data.reduce(
+        (sum, product) => sum + product.price * product.quantity,
+        0
+      );
+
       setStats({
         totalProducts: total,
         topSelling: Math.floor(total * 0.1), // Assuming top 10% are top selling
         lowStock: lowStock,
-        totalRevenue: revenue.toFixed(2)
+        totalRevenue: revenue.toFixed(2),
       });
     } catch (error) {
-      console.error('Error fetching products:', error);
-      showToast('Failed to load products', 'error');
+      console.error("Error fetching products:", error);
+      showToast("Failed to load products", "error");
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchProducts();
   }, []);
-  
+
   // Add product handler
   const handleAddProduct = async (productData) => {
     try {
-      await api.post('/products', productData);
+      await api.post("/products", productData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       await fetchProducts();
       setIsAddModalOpen(false);
-      showToast('Product added successfully');
+      showToast("Product added successfully");
     } catch (error) {
-      console.error('Error adding product:', error);
-      showToast('Failed to add product', 'error');
+      console.error("Error adding product:", error);
+      showToast("Failed to add product", "error");
     }
   };
-  
-  // Edit product handler
+
   const handleEditProduct = async (productData) => {
     try {
-      await api.put(`/products/${currentProduct._id}`, productData);
+      await api.put(`/products/${currentProduct._id}`, productData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       await fetchProducts();
       setIsEditModalOpen(false);
-      showToast('Product updated successfully');
+      showToast("Product updated successfully");
     } catch (error) {
-      console.error('Error updating product:', error);
-      showToast('Failed to update product', 'error');
+      console.error("Error updating product:", error);
+      showToast("Failed to update product", "error");
     }
   };
-  
-  // Delete product handler
+
   const handleDeleteProduct = async () => {
     try {
       await api.delete(`/products/${currentProduct._id}`);
       await fetchProducts();
       setIsDeleteModalOpen(false);
-      showToast('Product deleted successfully');
+      showToast("Product deleted successfully");
     } catch (error) {
-      console.error('Error deleting product:', error);
-      showToast('Failed to delete product', 'error');
+      console.error("Error deleting product:", error);
+      showToast("Failed to delete product", "error");
     }
   };
-  
-  // Open edit modal
+
   const openEditModal = (product) => {
     setCurrentProduct(product);
     setIsEditModalOpen(true);
   };
-  
-  // Open delete modal
+
   const openDeleteModal = (product) => {
     setCurrentProduct(product);
     setIsDeleteModalOpen(true);
@@ -499,7 +639,7 @@ const ProductsPage = () => {
   return (
     <div className="flex-1 overflow-auto relative z-10">
       <Header title="Products" />
-      
+
       <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
         {/* Stats Section */}
         <motion.div
@@ -508,32 +648,32 @@ const ProductsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <StatCard 
-            name="Total Products" 
-            icon={Package} 
-            value={stats.totalProducts} 
-            color="#6366F1" 
+          <StatCard
+            name="Total Products"
+            icon={Package}
+            value={stats.totalProducts}
+            color="#6366F1"
           />
-          <StatCard 
-            name="Top Selling" 
-            icon={TrendingUp} 
-            value={stats.topSelling} 
-            color="#10B981" 
+          <StatCard
+            name="Top Selling"
+            icon={TrendingUp}
+            value={stats.topSelling}
+            color="#10B981"
           />
-          <StatCard 
-            name="Low Stock" 
-            icon={AlertTriangle} 
-            value={stats.lowStock} 
-            color="#F59E0B" 
+          <StatCard
+            name="Low Stock"
+            icon={AlertTriangle}
+            value={stats.lowStock}
+            color="#F59E0B"
           />
-          <StatCard 
-            name="Total Revenue" 
-            icon={DollarSign} 
-            value={`$${stats.totalRevenue}`} 
-            color="#EF4444" 
+          <StatCard
+            name="Total Revenue"
+            icon={DollarSign}
+            value={`$${stats.totalRevenue}`}
+            color="#EF4444"
           />
         </motion.div>
-        
+
         {/* Add Product Button */}
         <div className="flex justify-end mb-6">
           <button
@@ -544,39 +684,36 @@ const ProductsPage = () => {
             Add Product
           </button>
         </div>
-        
-        {/* Products Table */}
-        <ProductsTable 
+
+        <ProductsTable
           products={products}
           onEdit={openEditModal}
           onDelete={openDeleteModal}
           loading={loading}
         />
-        
-        {/* Modals */}
-        <ProductModal 
+
+        <ProductModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddProduct}
           mode="add"
         />
-        
-        <ProductModal 
+
+        <ProductModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           product={currentProduct}
           onSave={handleEditProduct}
           mode="edit"
         />
-        
-        <DeleteConfirmationModal 
+
+        <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteProduct}
           productName={currentProduct?.name}
         />
-        
-        {/* Toast Notification */}
+
         {toast.visible && (
           <Toast
             message={toast.message}

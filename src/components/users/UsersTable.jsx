@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { userService } from "./UsersService";
 import UpdateUserModal from "./UpdateUserModal";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import {DeleteConfirmationModal} from "./DeleteConfirmationModal";
 import { toast } from "react-hot-toast";
 
 const UsersTable = () => {

@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 
@@ -76,4 +75,4 @@ const DeleteConfirmationModal = ({ user, isOpen, onClose, onConfirm }) => {
   );
 };
 
-export {DeleteConfirmationModal };
+export {  DeleteConfirmationModal }

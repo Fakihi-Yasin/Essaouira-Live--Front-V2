@@ -14,6 +14,7 @@ import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/Register";
 import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/home/Home";
+import CartPage from "./pages/home/Cart";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="cart" element={<CartPage />} />
         </Route>
       </Routes>
     </AuthProvider>
