@@ -34,6 +34,23 @@ const Cart = () => {
     toast.success('Item removed from cart');
   };
 
+  const formatImageUrl = (imageUrl) => {
+    // Check if it's already a complete URL
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    
+    // If it's a server path like 'uploads/filename.jpg'
+    if (imageUrl.includes('uploads/')) {
+      // Extract the filename from the path
+      const filename = imageUrl.split('/').pop();
+      return `http://localhost:3000/products/image/${filename}`;
+    }
+    
+    // Fallback: return the original path
+    return imageUrl;
+  };
+
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
     
@@ -96,7 +113,7 @@ const Cart = () => {
                   {/* Product Image */}
                   <div className="w-24 h-24 flex-shrink-0">
                     <img 
-                      src={item.image || "/placeholder.svg"} 
+                      src={item.imageUrl ? formatImageUrl(item.imageUrl) : "/default-image.jpg"}  
                       alt={item.name} 
                       className="w-full h-full object-cover rounded"
                     />

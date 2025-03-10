@@ -80,22 +80,6 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
-  // Function to get image URL from product image data
-  const getImageUrl = (image) => {
-    // If image is a full URL, return it
-    if (image && (image.startsWith('http://') || image.startsWith('https://'))) {
-      return image;
-    }
-    
-    // If image is a path from your server, construct the complete URL
-    if (image) {
-      return `http://localhost:3000/uploads/${image}`;
-    }
-    
-    // Return a placeholder if no image is available
-    return 'https://via.placeholder.com/300x200?text=No+Image';
-  };
-
   const handleAddToCart = (product) => {
     console.log("Attempting to add product:", product);
     console.log("Current cart:", cart);
@@ -147,6 +131,25 @@ const HomePage = () => {
     setSelectedProduct(null);
   };
 
+  const formatImageUrl = (imageUrl) => {
+    // Check if it's already a complete URL
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    
+    // If it's a server path like 'uploads/filename.jpg'
+    if (imageUrl.includes('uploads/')) {
+      // Extract the filename from the path
+      const filename = imageUrl.split('/').pop();
+      return `http://localhost:3000/products/image/${filename}`;
+    }
+    
+    // Fallback: return the original path
+    return imageUrl;
+  };
+  
+  
+
   // Product Modal Component
   const ProductModal = ({ product, onClose, onAddToCart }) => {
     if (!product) return null;
@@ -168,12 +171,11 @@ const HomePage = () => {
             {/* Product Images */}
             <div>
               <img 
-                src={getImageUrl(product.image)} 
+                src={(product.image)} 
                 alt={product.name}
                 className="w-full h-96 object-cover rounded-lg mb-4"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
                 }}
               />
             </div>
@@ -250,15 +252,16 @@ const HomePage = () => {
                 className="bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 relative group"
               >
                 <div className="relative h-64">
-                  <img
-                    src={getImageUrl(product.image)}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Found';
-                    }}
-                  />
+                <img 
+                  src={product.imageUrl ? formatImageUrl(product.imageUrl) : "/default-image.jpg"}  
+                  alt={product.name}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e) => {
+                    console.log('Error loading image:', product.image);
+                    e.target.onerror = null;
+                  }}
+                />
+              
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all">
                     <div className="absolute bottom-4 left-4 right-4 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   Edit,
   Search,
@@ -71,12 +72,14 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         description: product.description || "",
         price: product.price || 0,
         quantity: product.quantity || 0,
-        image: product.image || null,
+        image: null,
       });
       
       // If there's an existing image URL, set it as preview
       if (product.imageUrl) {
-        setImagePreview(product.imageUrl);
+        setImagePreview(product.imageUrl.startsWith('http') 
+          ? product.imageUrl 
+          : `http://localhost:3000/uploads/${product.imageUrl.split('/').pop()}`);
       } else {
         setImagePreview(null);
       }
@@ -93,15 +96,17 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
   }, [product, mode]);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, files } = e.target;
     
     if (type === "file") {
-      const file = e.target.files[0];
-      if (file) {
-        setFormData({
-          ...formData,
-          image: file,
-        });
+      if (files && files.length > 0) {
+        const file = files[0];
+        
+        // Update formData with the file
+        setFormData(prev => ({
+          ...prev,
+          image: file
+        }));
         
         // Create preview URL for image
         const reader = new FileReader();
@@ -111,11 +116,10 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         reader.readAsDataURL(file);
       }
     } else {
-      setFormData({
-        ...formData,
-        [name]:
-          name === "price" || name === "quantity" ? parseFloat(value) : value,
-      });
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === "price" || name === "quantity" ? parseFloat(value) : value,
+      }));
     }
   };
 
@@ -126,21 +130,31 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     const productFormData = new FormData();
     productFormData.append("name", formData.name);
     productFormData.append("description", formData.description);
-    productFormData.append("price", formData.price);
-    productFormData.append("quantity", formData.quantity);
+    productFormData.append("price", formData.price.toString());
+  productFormData.append("quantity", formData.quantity.toString());
     
+    // Debug logging
+    console.log("Form data before submission:", formData);
+    console.log("Image file:", formData.image);
+
     if (formData.image && formData.image instanceof File) {
       productFormData.append("image", formData.image);
+      console.log("Image file:", formData.image);
+      console.log("Image appended to FormData");
     }
+    
+ for (let pair of productFormData.entries()) {
+    console.log(pair[0] + ': ' + pair[1]);
+  }
     
     onSave(productFormData);
   };
 
   const handleRemoveImage = () => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       image: null,
-    });
+    }));
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -169,7 +183,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6" encType="multipart/form-data">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -253,7 +267,10 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                   </button>
                 </div>
               ) : (
-                <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center mb-3">
+                <div 
+                  className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center mb-3 cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
                   <p className="text-sm text-gray-400">
                     Drop your image here, or click to browse
@@ -267,9 +284,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 ref={fileInputRef}
                 accept="image/*"
                 onChange={handleChange}
-                className={`w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  imagePreview ? "hidden" : "block"
-                }`}
+                className="hidden" // Hide the native file input and use the dropzone instead
               />
             </div>
           </div>
@@ -473,18 +488,18 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                       {product.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.name}
-                          className="h-10 w-10 rounded-md object-cover"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-md bg-gray-700 flex items-center justify-center">
-                          <ImageIcon size={18} className="text-gray-400" />
-                        </div>
-                      )}
-                    </td>
+  {product.imageUrl ? (
+    <img 
+      src={formatImageUrl(product.imageUrl)} 
+      alt={product.name}
+      className="h-10 w-10 rounded-md object-cover"
+    />
+  ) : (
+    <div className="h-10 w-10 rounded-md bg-gray-700 flex items-center justify-center">
+      <ImageIcon size={18} className="text-gray-400" />
+    </div>
+  )}
+</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       ${product.price.toFixed(2)}
                     </td>
@@ -515,6 +530,22 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
     </motion.div>
   );
 };
+const formatImageUrl = (imageUrl) => {
+  // Check if it's already a complete URL
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+  
+  // If it's a server path like 'uploads/filename.jpg'
+  if (imageUrl.includes('uploads/')) {
+    // Extract the filename from the path
+    const filename = imageUrl.split('/').pop();
+    return `http://localhost:3000/products/image/${filename}`;
+  }
+  
+  // Fallback: return the original path
+  return imageUrl;
+};
 
 // Main Products Page Component
 const ProductsPage = () => {
@@ -539,6 +570,9 @@ const ProductsPage = () => {
     message: "",
     type: "success",
   });
+
+  // Add error state
+  const [error, setError] = useState("");
 
   const showToast = (message, type = "success") => {
     setToast({ visible: true, message, type });
@@ -582,35 +616,59 @@ const ProductsPage = () => {
   }, []);
 
   // Add product handler
-  const handleAddProduct = async (productData) => {
+  const handleAddProduct = async (formData) => {
     try {
-      await api.post("/products", productData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      setLoading(true);
+      setError(""); // Clear any previous errors
+      
+      console.log("Sending product data to API");
+      // Log FormData entries for debugging
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ':', pair[0] === 'image' ? 'File object' : pair[1]);
+      }
+      
+      // Make sure the Content-Type is NOT set manually for FormData
+      // The browser will automatically set the correct boundary
+      const response = await api.post('/products', formData);
+      
+      console.log("Product added successfully:", response.data);
+      setIsAddModalOpen(false); // Use proper state setter
       await fetchProducts();
-      setIsAddModalOpen(false);
-      showToast("Product added successfully");
+      showToast("Product added successfully", "success");
     } catch (error) {
       console.error("Error adding product:", error);
-      showToast("Failed to add product", "error");
+      console.error("Error details:", error.response?.data || error.message);
+      setError("Failed to add product. Please try again.");
+      showToast("Failed to add product: " + (error.response?.data?.message || error.message), "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEditProduct = async (productData) => {
+  const handleEditProduct = async (formData) => {
     try {
-      await api.put(`/products/${currentProduct._id}`, productData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      setLoading(true);
+      setError(""); // Clear any previous errors
+      
+      console.log("Sending product update to API");
+      // Log FormData entries for debugging
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File object' : pair[1]));
+      }
+      
+      const response = await api.put(`/products/${currentProduct._id}`, formData);
+      
+      console.log("Product updated successfully:", response.data);
+      setIsEditModalOpen(false); // Use proper state setter
       await fetchProducts();
-      setIsEditModalOpen(false);
-      showToast("Product updated successfully");
+      showToast("Product updated successfully", "success");
     } catch (error) {
       console.error("Error updating product:", error);
-      showToast("Failed to update product", "error");
+      console.error("Error details:", error.response?.data || error.message);
+      setError("Failed to update product. Please try again.");
+      showToast("Failed to update product: " + (error.response?.data?.message || error.message), "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -641,6 +699,13 @@ const ProductsPage = () => {
       <Header title="Products" />
 
       <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
+        {/* Error message display */}
+        {error && (
+          <div className="bg-red-500 text-white p-4 mb-6 rounded-lg">
+            {error}
+          </div>
+        )}
+        
         {/* Stats Section */}
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8"
