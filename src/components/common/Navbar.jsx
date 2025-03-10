@@ -44,7 +44,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold text-blue-400">
+              <Link to="/" className="text-2xl font-bold text-orange-600">
                 Essaouira Live
               </Link>
             </div>
@@ -59,7 +59,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-blue-400">
+            <Link to="/" className="text-2xl font-bold text-orange-600">
               Essaouira Live
             </Link>
           </div>
@@ -73,13 +73,13 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
                 >
                   Login
                 </Link>
                 <Link 
                   to="/register" 
-                  className="text-white px-4 py-2 bg-blue-800 rounded-md hover:bg-blue-700 transition-colors"
+                  className="text-white px-4 py-2 bg-orange-600 rounded-md hover:bg-orange-600 transition-colors"
                 >
                   Get Started
                 </Link>
@@ -91,10 +91,10 @@ export default function Navbar() {
 
                 {(userRole === 'admin' || userRole === 'user' || userRole === 'seller') && (
                   <>
-                    <Link to="/" className="text-gray-300 hover:text-blue-400 transition-colors">
+                    <Link to="/" className="text-gray-300 hover:text-orange-600 transition-colors">
                       Home
                     </Link>
-                    <Link to="/about" className="text-gray-300 hover:text-blue-400 transition-colors">
+                    <Link to="/about" className="text-gray-300 hover:text-orange-600 transition-colors">
                       About
                     </Link>
                     {userRole === 'user' && (
@@ -110,7 +110,7 @@ export default function Navbar() {
                    {(userRole === 'admin' || userRole === 'seller') && (
                   <Link
                     to="/dashboard"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
                   >
                     My Dashboard
                   </Link>
@@ -119,7 +119,7 @@ export default function Navbar() {
                 {(userRole === 'user' || userRole === 'admin' || userRole === 'seller') && (
                  <Link 
                  to="/cart" 
-                 className="relative text-gray-300 hover:text-blue-400 transition-colors"
+                 className="relative text-gray-300 hover:text-orange-600 transition-colors"
                >
                  <ShoppingCart className="w-6 h-6" />
                  {cartItems.length > 0 && (
@@ -133,7 +133,7 @@ export default function Navbar() {
                 
                 <button
                   onClick={handleLogout}
-                  className="text-gray-300 hover:text-blue-400 transition-colors"
+                  className="text-gray-300 hover:text-orange-600 transition-colors"
                 >
                   Logout
                 </button>
@@ -146,7 +146,7 @@ export default function Navbar() {
             {/* Mobile Cart Icon */}
             <Link 
               to="/cart" 
-              className="relative text-gray-300 hover:text-blue-400 transition-colors"
+              className="relative text-gray-300 hover:text-orange-600 transition-colors"
             >
               <ShoppingCart className="w-6 h-6" />
               {cartItems.length > 0 && (
@@ -156,7 +156,7 @@ export default function Navbar() {
               )}
             </Link>
 
-            <button onClick={toggleMenu} className="text-gray-300 hover:text-blue-400">
+            <button onClick={toggleMenu} className="text-gray-300 hover:text-orange-600">
               {isMenuOpen ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -183,14 +183,14 @@ export default function Navbar() {
               <>
                 <Link 
                   to="/login" 
-                  className="block px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                  className="block px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link 
                   to="/register" 
-                  className="block px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                  className="block px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Get Started
@@ -202,7 +202,7 @@ export default function Navbar() {
                 {(userRole === 'admin' || userRole === 'seller') && (
                   <Link 
                     to="/dashboard" 
-                    className="block px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                    className="block px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     My Dashboard
@@ -212,7 +212,7 @@ export default function Navbar() {
                 {userRole === 'user'  && (
                   <Link 
                     to="/become-seller" 
-                    className="block px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                    className="block px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Become a Seller
@@ -224,7 +224,7 @@ export default function Navbar() {
                     handleLogout();
                     setIsMenuOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 text-gray-300 hover:text-blue-400 transition-colors"
+                  className="block w-full text-left px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors"
                 >
                   Logout
                 </button>

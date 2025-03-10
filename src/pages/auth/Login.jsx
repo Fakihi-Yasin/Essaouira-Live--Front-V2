@@ -52,9 +52,9 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-indigo-100 p-4">
       <div className="w-full max-w-md overflow-hidden rounded-xl border-0 bg-white shadow-lg">
-        <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+        <div className="h-2 bg-gradient-to-r from-orange-600 to-indigo-600"></div>
         <div className="space-y-2 pb-6 pt-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Welcome back</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -81,7 +81,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-600 focus:ring-1 focus:ring-orange-600 outline-none"
                 />
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function Login() {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <a href="#" className="text-xs font-medium text-blue-600 hover:text-blue-500">
+                <a href="#" className="text-xs font-medium text-orange-600 hover:text-orange-600">
                   Forgot password?
                 </a>
               </div>
@@ -108,13 +108,13 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-600 focus:ring-1 focus:ring-orange-600 outline-none"
                 />
               </div>
             </div>
             <button 
               type="submit" 
-              className="w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+              className="w-full h-11 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-medium transition-colors"
             >
                 <span className="flex items-center justify-center">
                   Sign in 
@@ -131,7 +131,7 @@ export default function Login() {
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
-              className="font-medium text-blue-600 hover:text-blue-500 inline-flex items-center"
+              className="font-medium text-orange-600 hover:text-orange-600 inline-flex items-center"
             >
               Create account 
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">

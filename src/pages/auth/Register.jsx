@@ -43,9 +43,9 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-orange-100 p-4">
       <div className="w-full max-w-md overflow-hidden rounded-xl border-0 bg-white shadow-lg">
-        <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+        <div className="h-2 bg-gradient-to-r from-orange-500 to-purple-600"></div>
         <div className="space-y-2 pb-6 pt-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create your account</h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -72,7 +72,7 @@ export default function Register() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function Register() {
                   value={lastname}
                   onChange={(e) => setLastname(e.target.value)}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function Register() {
                     setIsEmailValid(validateEmail(e.target.value));
                   }}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
             </div>
@@ -140,14 +140,14 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full pl-10 h-11 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
             </div>
             <button 
               type="submit" 
-              className="w-full h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+              className="w-full h-11 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-medium transition-colors"
             >
            
               
@@ -167,7 +167,7 @@ export default function Register() {
             Already have an account?{" "}
             <button
               onClick={() => navigate("/login")}
-              className="font-medium text-indigo-600 hover:text-indigo-500 inline-flex items-center"
+              className="font-medium text-orange-600 hover:text-orange-500 inline-flex items-center"
             >
               Sign in 
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">

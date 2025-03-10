@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="bg-gray-800 text-gray-300 py-8">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <h3 className="text-xl font-bold mb-4 text-blue-400">Essaouira Live</h3>
+          <h3 className="text-xl font-bold mb-4 text-red">Essaouira Live</h3>
           <p className="text-gray-400">
             Discover the magic of Essaouira through its culture, crafts, and vibrant music scene.
           </p>

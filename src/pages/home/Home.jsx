@@ -242,7 +242,7 @@ const HomePage = () => {
       {/* Local Crafts Section */}
       <section className="py-16 px-4 bg-gray-800">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-blue-400">
+          <h2 className="text-3xl font-bold text-center mb-12 text-orange-600">
             {products.length > 0 ? 'Local Crafts' : 'No Products Available'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -275,7 +275,7 @@ const HomePage = () => {
                 </div>
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-2 text-white">{product.name}</h3>
-                  <p className="text-blue-400 font-bold">${product.price}</p>
+                  <p className="text-orange-600 font-bold">${product.price}</p>
                 </div>
               </div>
             ))}
@@ -284,7 +284,7 @@ const HomePage = () => {
             <div className="text-center mt-8">
               <Link 
                 to="/products" 
-                className="inline-flex items-center text-blue-400 hover:text-blue-300 font-semibold"
+                className="inline-flex items-center text-orange-600 hover:text-blue-300 font-semibold"
               >
                 See More Products
                 <ArrowRight className="ml-2 w-4 h-4" />
