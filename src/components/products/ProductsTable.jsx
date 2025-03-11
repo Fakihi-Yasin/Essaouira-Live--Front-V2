@@ -229,20 +229,6 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
               </div>
             </div>
             
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="display"
-                id="display"
-                checked={formData.display}
-                onChange={handleChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-500 rounded"
-              />
-              <label htmlFor="display" className="ml-2 block text-sm text-gray-300">
-                Display product (visible to customers)
-              </label>
-            </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Product Image
