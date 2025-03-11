@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-
 import {
   Edit,
   Search,
@@ -11,47 +10,34 @@ import {
   Package,
   TrendingUp,
   Image as ImageIcon,
+  Eye,
+  EyeOff,
+  Tag
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import Header from "../../components/common/Header";
 import StatCard from "../../components/common/StatCard";
+import { useProducts, ProductProvider } from "../../context/ProductContext";
 
-// Create axios instance with auth
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-});
-
-// Add auth interceptor
-api.interceptors.request.use(
-  (config) => {
-    // Get token from localStorage or your auth management
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Format image URL helper
+const formatImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  
+  // Check if it's already a complete URL
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
   }
-);
-
-// Handle auth errors globally
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Redirect to login page or trigger auth refresh
-      console.log("Authentication error, redirecting to login...");
-      // You might want to redirect here:
-      // window.location.href = '/login';
-    }
-    return Promise.reject(error);
+  
+  // If it's a server path like 'uploads/filename.jpg'
+  if (imageUrl.includes('uploads/')) {
+    // Extract the filename from the path
+    const filename = imageUrl.split('/').pop();
+    return `http://localhost:3000/products/image/${filename}`;
   }
-);
+  
+  // Fallback: return the original path
+  return imageUrl;
+};
 
 // Modal Component for Add/Edit
 const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
@@ -61,6 +47,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     price: 0,
     quantity: 0,
     image: null,
+    display: true
   });
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -72,14 +59,13 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         description: product.description || "",
         price: product.price || 0,
         quantity: product.quantity || 0,
+        display: product.display !== undefined ? product.display : true,
         image: null,
       });
       
       // If there's an existing image URL, set it as preview
       if (product.imageUrl) {
-        setImagePreview(product.imageUrl.startsWith('http') 
-          ? product.imageUrl 
-          : `http://localhost:3000/uploads/${product.imageUrl.split('/').pop()}`);
+        setImagePreview(formatImageUrl(product.imageUrl));
       } else {
         setImagePreview(null);
       }
@@ -89,6 +75,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         description: "",
         price: 0,
         quantity: 0,
+        display: true,
         image: null,
       });
       setImagePreview(null);
@@ -96,7 +83,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
   }, [product, mode]);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, type, files, checked } = e.target;
     
     if (type === "file") {
       if (files && files.length > 0) {
@@ -115,6 +102,11 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         };
         reader.readAsDataURL(file);
       }
+    } else if (type === "checkbox") {
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -131,21 +123,12 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     productFormData.append("name", formData.name);
     productFormData.append("description", formData.description);
     productFormData.append("price", formData.price.toString());
-  productFormData.append("quantity", formData.quantity.toString());
+    productFormData.append("quantity", formData.quantity.toString());
+    productFormData.append("display", formData.display.toString());
     
-    // Debug logging
-    console.log("Form data before submission:", formData);
-    console.log("Image file:", formData.image);
-
     if (formData.image && formData.image instanceof File) {
       productFormData.append("image", formData.image);
-      console.log("Image file:", formData.image);
-      console.log("Image appended to FormData");
     }
-    
- for (let pair of productFormData.entries()) {
-    console.log(pair[0] + ': ' + pair[1]);
-  }
     
     onSave(productFormData);
   };
@@ -244,6 +227,20 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                   required
                 />
               </div>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="display"
+                id="display"
+                checked={formData.display}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-500 rounded"
+              />
+              <label htmlFor="display" className="ml-2 block text-sm text-gray-300">
+                Display product (visible to customers)
+              </label>
             </div>
             
             <div>
@@ -397,7 +394,7 @@ const Toast = ({ message, type, onClose }) => {
 };
 
 // Products Table Component
-const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
+const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
 
@@ -462,6 +459,12 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                   Quantity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Visibility
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -470,7 +473,7 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan="7"
                     className="px-6 py-12 text-center text-gray-400"
                   >
                     No products found
@@ -488,23 +491,45 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
                       {product.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-  {product.imageUrl ? (
-    <img 
-      src={formatImageUrl(product.imageUrl)} 
-      alt={product.name}
-      className="h-10 w-10 rounded-md object-cover"
-    />
-  ) : (
-    <div className="h-10 w-10 rounded-md bg-gray-700 flex items-center justify-center">
-      <ImageIcon size={18} className="text-gray-400" />
-    </div>
-  )}
-</td>
+                      {product.imageUrl ? (
+                        <img 
+                          src={formatImageUrl(product.imageUrl)} 
+                          alt={product.name}
+                          className="h-10 w-10 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-md bg-gray-700 flex items-center justify-center">
+                          <ImageIcon size={18} className="text-gray-400" />
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       ${product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {product.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        product.status === 'in stock' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {product.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <button
+                        className={`${
+                          product.display 
+                            ? 'text-green-400 hover:text-green-300' 
+                            : 'text-gray-500 hover:text-gray-400'
+                        }`}
+                        onClick={() => onToggleDisplay(product)}
+                        title={product.display ? "Product is visible" : "Product is hidden"}
+                      >
+                        {product.display ? <Eye size={18} /> : <EyeOff size={18} />}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
@@ -530,33 +555,19 @@ const ProductsTable = ({ products, onEdit, onDelete, loading }) => {
     </motion.div>
   );
 };
-const formatImageUrl = (imageUrl) => {
-  // Check if it's already a complete URL
-  if (imageUrl.startsWith('http')) {
-    return imageUrl;
-  }
-  
-  // If it's a server path like 'uploads/filename.jpg'
-  if (imageUrl.includes('uploads/')) {
-    // Extract the filename from the path
-    const filename = imageUrl.split('/').pop();
-    return `http://localhost:3000/products/image/${filename}`;
-  }
-  
-  // Fallback: return the original path
-  return imageUrl;
-};
 
-// Main Products Page Component
-const ProductsPage = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    topSelling: 0,
-    lowStock: 0,
-    totalRevenue: 0,
-  });
+// Main Products Page Component (using Context)
+const ProductsPageContent = () => {
+  const { 
+    products, 
+    loading, 
+    error: contextError,
+    stats, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct,
+    toggleProductDisplay
+  } = useProducts();
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -571,8 +582,15 @@ const ProductsPage = () => {
     type: "success",
   });
 
-  // Add error state
+  // Local error state
   const [error, setError] = useState("");
+
+  // Set error from context
+  useEffect(() => {
+    if (contextError) {
+      setError(contextError);
+    }
+  }, [contextError]);
 
   const showToast = (message, type = "success") => {
     setToast({ visible: true, message, type });
@@ -582,105 +600,43 @@ const ProductsPage = () => {
     setToast({ ...toast, visible: false });
   };
 
-  // Fetch products from API
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/products/my-products");
-      setProducts(response.data);
-
-      // Calculate stats
-      const total = response.data.length;
-      const lowStock = response.data.filter((p) => p.quantity < 10).length;
-      const revenue = response.data.reduce(
-        (sum, product) => sum + product.price * product.quantity,
-        0
-      );
-
-      setStats({
-        totalProducts: total,
-        topSelling: Math.floor(total * 0.1), 
-        lowStock: lowStock,
-        totalRevenue: revenue.toFixed(2),
-      });
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      showToast("Failed to load products", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   // Add product handler
   const handleAddProduct = async (formData) => {
-    try {
-      setLoading(true);
-      setError(""); // Clear any previous errors
-      
-      console.log("Sending product data to API");
-      // Log FormData entries for debugging
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ':', pair[0] === 'image' ? 'File object' : pair[1]);
-      }
-      
-      // Make sure the Content-Type is NOT set manually for FormData
-      // The browser will automatically set the correct boundary
-      const response = await api.post('/products', formData);
-      
-      console.log("Product added successfully:", response.data);
-      setIsAddModalOpen(false); // Use proper state setter
-      await fetchProducts();
+    const result = await addProduct(formData);
+    if (result.success) {
+      setIsAddModalOpen(false);
       showToast("Product added successfully", "success");
-    } catch (error) {
-      console.error("Error adding product:", error);
-      console.error("Error details:", error.response?.data || error.message);
-      setError("Failed to add product. Please try again.");
-      showToast("Failed to add product: " + (error.response?.data?.message || error.message), "error");
-    } finally {
-      setLoading(false);
+    } else {
+      showToast(result.error || "Failed to add product", "error");
     }
   };
 
   const handleEditProduct = async (formData) => {
-    try {
-      setLoading(true);
-      setError(""); // Clear any previous errors
-      
-      console.log("Sending product update to API");
-      // Log FormData entries for debugging
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File object' : pair[1]));
-      }
-      
-      const response = await api.put(`/products/${currentProduct._id}`, formData);
-      
-      console.log("Product updated successfully:", response.data);
-      setIsEditModalOpen(false); // Use proper state setter
-      await fetchProducts();
+    const result = await updateProduct(currentProduct._id, formData);
+    if (result.success) {
+      setIsEditModalOpen(false);
       showToast("Product updated successfully", "success");
-    } catch (error) {
-      console.error("Error updating product:", error);
-      console.error("Error details:", error.response?.data || error.message);
-      setError("Failed to update product. Please try again.");
-      showToast("Failed to update product: " + (error.response?.data?.message || error.message), "error");
-    } finally {
-      setLoading(false);
+    } else {
+      showToast(result.error || "Failed to update product", "error");
     }
   };
 
   const handleDeleteProduct = async () => {
-    try {
-      await api.delete(`/products/${currentProduct._id}`);
-      await fetchProducts();
+    const result = await deleteProduct(currentProduct._id);
+    if (result.success) {
       setIsDeleteModalOpen(false);
       showToast("Product deleted successfully");
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      showToast("Failed to delete product", "error");
+    } else {
+      showToast(result.error || "Failed to delete product", "error");
+    }
+  };
+
+  const handleToggleDisplay = async (product) => {
+    const result = await toggleProductDisplay(product._id, product.display);
+    if (result.success) {
+      showToast(`Product is now ${product.display ? 'hidden' : 'visible'}`);
+    } else {
+      showToast(result.error || "Failed to update visibility", "error");
     }
   };
 
@@ -754,6 +710,7 @@ const ProductsPage = () => {
           products={products}
           onEdit={openEditModal}
           onDelete={openDeleteModal}
+          onToggleDisplay={handleToggleDisplay}
           loading={loading}
         />
 
@@ -790,5 +747,10 @@ const ProductsPage = () => {
     </div>
   );
 };
+const ProductsPage = () => (
+  <ProductProvider>
+    <ProductsPageContent />
+  </ProductProvider>
+);
 
 export default ProductsPage;
