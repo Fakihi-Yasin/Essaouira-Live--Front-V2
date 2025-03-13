@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, User } from "lucide-react";
 
 export default function Navbar() {
   const { isLoggedIn, userRole, logout } = useAuth();
@@ -117,17 +117,27 @@ export default function Navbar() {
                 )}
 
                 {(userRole === 'user' || userRole === 'admin' || userRole === 'seller') && (
-                 <Link 
-                 to="/cart" 
-                 className="relative text-gray-300 hover:text-orange-600 transition-colors"
-               >
-                 <ShoppingCart className="w-6 h-6" />
-                 {cartItems.length > 0 && (
-                   <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                     {cartItems.length}
-                   </span>
-                 )}
-               </Link>
+                 <>
+                   <Link 
+                     to="/cart" 
+                     className="relative text-gray-300 hover:text-orange-600 transition-colors"
+                   >
+                     <ShoppingCart className="w-6 h-6" />
+                     {cartItems.length > 0 && (
+                       <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                         {cartItems.length}
+                       </span>
+                     )}
+                   </Link>
+                   
+                   {/* Profile Icon */}
+                   <Link 
+                     to="/profile" 
+                     className="text-gray-300 hover:text-orange-600 transition-colors"
+                   >
+                     <User className="w-6 h-6" />
+                   </Link>
+                 </>
                 )}
                 
                 
@@ -144,17 +154,29 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-4">
             {/* Mobile Cart Icon */}
-            <Link 
-              to="/cart" 
-              className="relative text-gray-300 hover:text-orange-600 transition-colors"
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartItems.length}
-                </span>
-              )}
-            </Link>
+            {isLoggedIn && (
+              <>
+                <Link 
+                  to="/cart" 
+                  className="relative text-gray-300 hover:text-orange-600 transition-colors"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
+                
+                {/* Mobile Profile Icon */}
+                <Link 
+                  to="/profile" 
+                  className="text-gray-300 hover:text-orange-600 transition-colors"
+                >
+                  <User className="w-6 h-6" />
+                </Link>
+              </>
+            )}
 
             <button onClick={toggleMenu} className="text-gray-300 hover:text-orange-600">
               {isMenuOpen ? (
@@ -199,6 +221,15 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Existing mobile navigation for logged-in users */}
+                <Link 
+                  to="/profile" 
+                  className="block px-3 py-2 text-gray-300 hover:text-orange-600 transition-colors flex items-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="w-5 h-5 mr-2" />
+                  My Profile
+                </Link>
+                
                 {(userRole === 'admin' || userRole === 'seller') && (
                   <Link 
                     to="/dashboard" 

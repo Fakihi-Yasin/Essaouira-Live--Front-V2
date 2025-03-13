@@ -15,12 +15,13 @@ import RegisterPage from "./pages/auth/Register";
 import { AuthProvider } from "./context/AuthContext";
 import HomePage from "./pages/home/Home";
 import CartPage from "./pages/home/Cart";
+import ProfilePage from "./pages/home/Profile";
 
 function App() {
   return (
     <AuthProvider>
       <Routes>
-        {/* Dashboard routes - no Navbar */}
+  
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<OverviewPage />} />
           <Route path="products" element={<ProductsPage />} />
@@ -37,6 +38,7 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </AuthProvider>
