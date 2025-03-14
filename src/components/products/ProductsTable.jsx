@@ -22,19 +22,19 @@ import { useProducts, ProductProvider } from "../../context/ProductContext";
 // Format image URL helper
 const formatImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
-  
+
   // Check if it's already a complete URL
   if (imageUrl.startsWith('http')) {
     return imageUrl;
   }
-  
+
   // If it's a server path like 'uploads/filename.jpg'
   if (imageUrl.includes('uploads/')) {
     // Extract the filename from the path
     const filename = imageUrl.split('/').pop();
     return `http://localhost:3000/products/image/${filename}`;
   }
-  
+
   // Fallback: return the original path
   return imageUrl;
 };
@@ -47,7 +47,8 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     price: 0,
     quantity: 0,
     image: null,
-    display: true
+    display: true,
+    category: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -61,8 +62,9 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         quantity: product.quantity || 0,
         display: product.display !== undefined ? product.display : true,
         image: null,
+        category: product.category || "",
       });
-      
+
       // If there's an existing image URL, set it as preview
       if (product.imageUrl) {
         setImagePreview(formatImageUrl(product.imageUrl));
@@ -77,6 +79,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         quantity: 0,
         display: true,
         image: null,
+        category: "",
       });
       setImagePreview(null);
     }
@@ -84,17 +87,17 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
 
   const handleChange = (e) => {
     const { name, value, type, files, checked } = e.target;
-    
+
     if (type === "file") {
       if (files && files.length > 0) {
         const file = files[0];
-        
+
         // Update formData with the file
         setFormData(prev => ({
           ...prev,
           image: file
         }));
-        
+
         // Create preview URL for image
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -117,7 +120,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Create FormData for file upload
     const productFormData = new FormData();
     productFormData.append("name", formData.name);
@@ -125,11 +128,12 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
     productFormData.append("price", formData.price.toString());
     productFormData.append("quantity", formData.quantity.toString());
     productFormData.append("display", formData.display.toString());
-    
+    productFormData.append("category", formData.category);
+
     if (formData.image && formData.image instanceof File) {
       productFormData.append("image", formData.image);
     }
-    
+
     onSave(productFormData);
   };
 
@@ -184,6 +188,32 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
+                Catégorie
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Sélectionner une catégorie</option>
+                {[
+                  { value: "zerbiya", label: "Tapis" },
+                  { value: "lfakhar", label: "Poterie" },
+                  { value: "l3er3ar", label: "Bois de thuya" },
+                  { value: "zelij", label: "Zellige" },
+                ].map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description
               </label>
               <textarea
@@ -228,17 +258,17 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Product Image
               </label>
-              
+
               {imagePreview ? (
                 <div className="relative mb-3 border border-gray-700 rounded-lg overflow-hidden">
-                  <img 
-                    src={imagePreview} 
-                    alt="Product preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
                     className="w-full h-40 object-cover"
                   />
                   <button
@@ -250,7 +280,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                   </button>
                 </div>
               ) : (
-                <div 
+                <div
                   className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center mb-3 cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -260,7 +290,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                   </p>
                 </div>
               )}
-              
+
               <input
                 type="file"
                 name="image"
@@ -357,8 +387,8 @@ const Toast = ({ message, type, onClose }) => {
     type === "success"
       ? "bg-green-500"
       : type === "error"
-      ? "bg-red-500"
-      : "bg-blue-500";
+        ? "bg-red-500"
+        : "bg-blue-500";
 
   return (
     <motion.div
@@ -436,6 +466,9 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Image
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -477,9 +510,12 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                       {product.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {product.category}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {product.imageUrl ? (
-                        <img 
-                          src={formatImageUrl(product.imageUrl)} 
+                        <img
+                          src={formatImageUrl(product.imageUrl)}
                           alt={product.name}
                           className="h-10 w-10 rounded-md object-cover"
                         />
@@ -496,21 +532,19 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                       {product.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        product.status === 'in stock' 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${product.status === 'in stock'
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {product.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
-                        className={`${
-                          product.display 
-                            ? 'text-green-400 hover:text-green-300' 
+                        className={`${product.display
+                            ? 'text-green-400 hover:text-green-300'
                             : 'text-gray-500 hover:text-gray-400'
-                        }`}
+                          }`}
                         onClick={() => onToggleDisplay(product)}
                         title={product.display ? "Product is visible" : "Product is hidden"}
                       >
@@ -544,13 +578,13 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
 
 // Main Products Page Component (using Context)
 const ProductsPageContent = () => {
-  const { 
-    products, 
-    loading, 
+  const {
+    products,
+    loading,
     error: contextError,
-    stats, 
-    addProduct, 
-    updateProduct, 
+    stats,
+    addProduct,
+    updateProduct,
     deleteProduct,
     toggleProductDisplay
   } = useProducts();
@@ -647,7 +681,7 @@ const ProductsPageContent = () => {
             {error}
           </div>
         )}
-        
+
         {/* Stats Section */}
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8"
