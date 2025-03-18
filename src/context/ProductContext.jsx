@@ -28,8 +28,10 @@ export const useProducts = () => useContext(ProductContext);
 
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [stats, setStats] = useState({
     totalProducts: 0,
     topSelling: 0,
@@ -62,6 +64,18 @@ export const ProductProvider = ({ children }) => {
       setError("Failed to load products");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
     }
   };
 
@@ -145,11 +159,13 @@ export const ProductProvider = ({ children }) => {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const value = {
     products,
     loading,
+    categories,
     error,
     stats,
     fetchProducts,

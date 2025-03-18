@@ -19,7 +19,7 @@ import Header from "../../components/common/Header";
 import StatCard from "../../components/common/StatCard";
 import { useProducts, ProductProvider } from "../../context/ProductContext";
 
-// Format image URL helper
+
 const formatImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
 
@@ -40,7 +40,8 @@ const formatImageUrl = (imageUrl) => {
 };
 
 // Modal Component for Add/Edit
-const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
+const ProductModal = ({ isOpen, onClose, product, onSave, mode ,categories}) => {
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -62,7 +63,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
         quantity: product.quantity || 0,
         display: product.display !== undefined ? product.display : true,
         image: null,
-        category: product.category || "",
+        category: product.category?._id || product.category || "",
       });
 
       // If there's an existing image URL, set it as preview
@@ -198,14 +199,9 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 required
               >
                 <option value="">Sélectionner une catégorie</option>
-                {[
-                  { value: "zerbiya", label: "Tapis" },
-                  { value: "lfakhar", label: "Poterie" },
-                  { value: "l3er3ar", label: "Bois de thuya" },
-                  { value: "zelij", label: "Zellige" },
-                ].map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -297,7 +293,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
                 ref={fileInputRef}
                 accept="image/*"
                 onChange={handleChange}
-                className="hidden" // Hide the native file input and use the dropzone instead
+                className="hidden"
               />
             </div>
           </div>
@@ -323,7 +319,6 @@ const ProductModal = ({ isOpen, onClose, product, onSave, mode }) => {
   );
 };
 
-// Delete Confirmation Modal
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
@@ -409,8 +404,7 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// Products Table Component
-const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading }) => {
+const ProductsTable = ({ products, onEdit, onDelete, categories, onToggleDisplay, loading }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
 
@@ -510,8 +504,10 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                       {product.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {product.category}
-                    </td>
+                      {categories && categories.length > 0
+                        ? categories.find(cat => cat._id === product.category)?.name || "—"
+                        : "—"}
+                    </td>         
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {product.imageUrl ? (
                         <img
@@ -533,8 +529,8 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${product.status === 'in stock'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
                         }`}>
                         {product.status}
                       </span>
@@ -542,8 +538,8 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
                         className={`${product.display
-                            ? 'text-green-400 hover:text-green-300'
-                            : 'text-gray-500 hover:text-gray-400'
+                          ? 'text-green-400 hover:text-green-300'
+                          : 'text-gray-500 hover:text-gray-400'
                           }`}
                         onClick={() => onToggleDisplay(product)}
                         title={product.display ? "Product is visible" : "Product is hidden"}
@@ -580,6 +576,7 @@ const ProductsTable = ({ products, onEdit, onDelete, onToggleDisplay, loading })
 const ProductsPageContent = () => {
   const {
     products,
+    categories,
     loading,
     error: contextError,
     stats,
@@ -728,6 +725,7 @@ const ProductsPageContent = () => {
 
         <ProductsTable
           products={products}
+          categories={categories}
           onEdit={openEditModal}
           onDelete={openDeleteModal}
           onToggleDisplay={handleToggleDisplay}
@@ -739,6 +737,7 @@ const ProductsPageContent = () => {
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddProduct}
           mode="add"
+          categories={categories}
         />
 
         <ProductModal
@@ -747,6 +746,7 @@ const ProductsPageContent = () => {
           product={currentProduct}
           onSave={handleEditProduct}
           mode="edit"
+          categories={categories}
         />
 
         <DeleteConfirmationModal

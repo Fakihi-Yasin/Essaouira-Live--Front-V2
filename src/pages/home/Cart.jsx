@@ -98,7 +98,7 @@ const Cart = () => {
           <p className="text-gray-500 mb-8">Looks like you haven't added any products to your cart yet.</p>
           <Link 
             to="/" 
-            className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
           >
             Continue Shopping
           </Link>
@@ -181,14 +181,14 @@ const Cart = () => {
               </div>
               
               <button 
-                className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors"
+                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
               >
                 Proceed to Checkout
               </button>
               
               <Link 
                 to="/" 
-                className="block text-center mt-4 text-orange-600 hover:text-orange-800"
+                className="block text-center mt-4 text-green-600 hover:text-green-800"
               >
                 Continue Shopping
               </Link>
