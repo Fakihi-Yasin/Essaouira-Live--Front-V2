@@ -55,7 +55,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white/30 backdrop-blur-none shadow-md mb-0">
+    <nav className=" bg-white/30 backdrop-blur-none shadow-md mb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -91,38 +91,44 @@ export default function Navbar() {
 
                 {(userRole === 'admin' || userRole === 'user' || userRole === 'seller') && (
                   <>
-                    <Link to="/" className="text-sky-700 hover:text-sky-700 transition-colors">
+                    <Link to="/" className="text-black hover:text-sky-700 transition-colors">
                       Home
                     </Link>
-                    <Link to="/about" className="text-sky-700 hover:text-sky-700 transition-colors">
+                    <Link to="/about" className="text-black hover:text-sky-700 transition-colors">
                       About
                     </Link>
-                    
+                    <Link 
+                     to="/cart" 
+                     className="relative text-black transition-colors"
+                   >
+                     <ShoppingCart className="w-6 h-6" />
+                     {cartItems.length > 0 && (
+                       <span className="absolute -top-2 -right-2 bg-red-600 black text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                         {cartItems.length}
+                       </span>
+                     )}
+                   </Link>
+                   <Link 
+                     to="/profile" 
+                     className="text-black hover:text-sky-700 transition-colors"
+                   >
+                     <User className="w-6 h-6" />
+                   </Link>
+                    {(userRole === 'admin' || userRole === 'seller') && (
+                  <Link
+                    to="/dashboard"
+                    className="bg-sky-700 text-white px-4 py-2 rounded-md hover:bg-sky-700 transition-colors"
+                  >
+                    My Dashboard
+                  </Link>
+                )}
                   </>
                 )}
              
 
                 {(userRole === 'user' || userRole === 'admin' || userRole === 'seller') && (
                  <>
-                   <Link 
-                     to="/cart" 
-                     className="relative text-sky-700 hover:text-sky-700 transition-colors"
-                   >
-                     <ShoppingCart className="w-6 h-6" />
-                     {cartItems.length > 0 && (
-                       <span className="absolute -top-2 -right-2 bg-red-600 text-sky-700 text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                         {cartItems.length}
-                       </span>
-                     )}
-                   </Link>
-                   
-                   {/* Profile Icon */}
-                   <Link 
-                     to="/profile" 
-                     className="text-sky-700 hover:text-sky-700 transition-colors"
-                   >
-                     <User className="w-6 h-6" />
-                   </Link>
+                
                    {userRole === 'user' && (
                     <Link
                       to="/become-seller"
@@ -131,21 +137,14 @@ export default function Navbar() {
                       Become a Seller
                     </Link>
                     )}
-                   {(userRole === 'admin' || userRole === 'seller') && (
-                  <Link
-                    to="/dashboard"
-                    className="bg-sky-700 text-white px-4 py-2 rounded-md hover:bg-sky-700 transition-colors"
-                  >
-                    My Dashboard
-                  </Link>
-                )}
+                 
                  </>
                 )}
                 
                 
                 <button
                   onClick={handleLogout}
-                  className="text-sky-700 hover:text-sky-700 transition-colors"
+                  className="bg-sky-700 text-white px-4 py-2 rounded-md hover:bg-sky-700 transition-colors"
                 >
                   Logout
                 </button>

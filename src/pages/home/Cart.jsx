@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
 
   // Load cart from localStorage on component mount
   useEffect(() => {
@@ -73,6 +75,72 @@ const Cart = () => {
     window.dispatchEvent(new Event('storage'));
     
     toast.success('Cart cleared');
+  };
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      // Get user info (you might want to collect this from a form)
+      const userInfo = {
+        name: 'Customer Name',
+        email: 'customer@example.com',
+        address: '123 Main St',
+        city: 'City',
+        postalCode: '12345',
+        country: 'Country'
+      };
+
+      // Create order payload
+      const orderData = {
+        items: cart.map(item => ({
+          productId: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shippingDetails: userInfo,
+        amount: subtotal,
+        description: `Order from Web Store`,
+        redirectUrl: `${window.location.origin}/checkout/success`
+      };
+
+      // Send order to backend
+      const response = await fetch('http://localhost:3000/payments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const { checkoutUrl } = await response.json();
+      
+      // Store order details in localStorage if needed
+      localStorage.setItem('pendingOrder', JSON.stringify({
+        items: cart,
+        total: subtotal,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Redirect to Mollie checkout page
+      window.location.href = checkoutUrl;
+      
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Something went wrong during checkout');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -181,9 +249,15 @@ const Cart = () => {
               </div>
               
               <button 
-                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
+                onClick={handleCheckout}
+                disabled={isProcessing || cart.length === 0}
+                className={`w-full bg-green-600 text-white py-3 rounded-lg transition-colors ${
+                  isProcessing || cart.length === 0 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:bg-green-700'
+                }`}
               >
-                Proceed to Checkout
+                {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
               </button>
               
               <Link 

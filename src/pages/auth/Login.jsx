@@ -2,6 +2,8 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";
+
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -15,7 +17,7 @@ export default function Login() {
     setIsLoading(true)
 
     if(!email || !password) {
-        // toast.error("please enter your email and password")
+        toast.error("Please enter your email and password")
         setIsLoading(false)
         return
     }
@@ -27,27 +29,44 @@ export default function Login() {
         })
         console.log("response.data", response.data);
         const data = response.data        
+        
+        // Check user status before proceeding with login
+        if (data.status === "inactive" || data.status === "suspended") {
+            toast.error(`Your account is ${data.status}. Please contact support for assistance.`)
+            setIsLoading(false)
+            return
+        }
+        
         if (response.status === 201) {
             // Store the token
             localStorage.setItem("token", data.access_token)
             
             // Use the login function from context and pass the user role
-            // You need to extract user role from the response if available
             const userRole = data.role || 'user' // Default to 'user' if not provided
             login(userRole)
             
-            // toast.success("Login successful!");
+            toast.success("Login successful!")
             setTimeout(() => {
               navigate("/"); 
             }, 1000);
         } else {
-            // toast.error("Invalid email or password")
+            toast.error("Invalid email or password")
             setIsLoading(false)
         }
     } catch(error) {
         console.log(error)
         setIsLoading(false)
-        // toast.error("Login failed. Please try again.")
+        
+        // Check if the error response contains a status message
+        if (error.response && error.response.data) {
+            const { status } = error.response.data;
+            if (status === "inactive" || status === "suspended") {
+                toast.error(`Your account is ${status}. Please contact support for assistance.`);
+                return;
+            }
+        }
+        
+        toast.error("Login failed. Please try again.")
     }
   }
 
@@ -115,13 +134,16 @@ export default function Login() {
             <button 
               type="submit" 
               className="w-full h-11 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-medium transition-colors"
+              disabled={isLoading}
             >
                 <span className="flex items-center justify-center">
-                  Sign in 
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
+                  {isLoading ? "Signing in..." : "Sign in"}
+                  {!isLoading && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  )}
                 </span>
             </button>
           </form>
