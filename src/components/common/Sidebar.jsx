@@ -2,24 +2,29 @@ import { BarChart2, List , Menu, Settings, ShoppingBag, ShoppingCart, TrendingUp
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-
-const SIDEBAR_ITEMS = [
-	{
-		name: "Overview",
-		icon: BarChart2,
-		color: "#6366f1",
-		href: "/dashboard",
-	},
-	{ name: "Products", icon: ShoppingBag, color: "#8B5CF6", href: "/dashboard/products" },
-	{ name: "Users", icon: Users, color: "#EC4899", href: "/dashboard/users" },
-	{ name: "Categories", icon: List , color: "#10B981", href: "/dashboard/categories" },
-	{ name: "Orders", icon: ShoppingCart, color: "#F59E0B", href: "/dashboard/orders" },
-	{ name: "Analytics", icon: TrendingUp, color: "#3B82F6", href: "/dashboard/analytics" },
-	{ name: "Settings", icon: Settings, color: "#6EE7B7", href: "/dashboard/settings" },
-];
+import { useAuth } from "../../context/AuthContext";
 
 const Sidebar = () => {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+	const { isLoggedIn, userRole } = useAuth();
+
+	const SIDEBAR_ITEMS = [
+		{
+			name: "Overview",
+			icon: BarChart2,
+			color: "#6366f1",
+			href: "/",
+		},
+		{ name: "Products", icon: ShoppingBag, color: "#8B5CF6", href: "/dashboard/products" },	
+		...(userRole === 'amine'?[
+		{ name: "Users", icon: Users, color: "#EC4899", href: "/dashboard/users" },
+		] : []),
+	
+		{ name: "Categories", icon: List , color: "#10B981", href: "/dashboard/categories" },
+		{ name: "Orders", icon: ShoppingCart, color: "#F59E0B", href: "/dashboard/orders" },
+		{ name: "Analytics", icon: TrendingUp, color: "#3B82F6", href: "/dashboard/analytics" },
+		{ name: "Settings", icon: Settings, color: "#6EE7B7", href: "/dashboard/settings" },
+	];
 
 	return (
 		<motion.div
