@@ -1,8 +1,6 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 import WebsiteLayout from "./layouts/WebsiteLayout";
-
-// Dashboard pages
 import OverviewPage from "./pages/dashboard/OverviewPage";
 import ProductsPage from "./pages/dashboard/ProductsPage";
 import UsersPage from "./pages/dashboard/UsersPage";
@@ -12,28 +10,44 @@ import SettingsPage from "./pages/dashboard/SettingsPage";
 import CatregoriesPage from "./pages/dashboard/CatregoriesPage";
 import LoginPage from "./pages/auth/Login";
 import RegisterPage from "./pages/auth/Register";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import HomePage from "./pages/home/Home";
 import CartPage from "./pages/home/Cart";
 import ProfilePage from "./pages/home/Profile";
 import CheckoutSuccess from './pages/home/CheckoutSuccess';
+import NotFound  from "./pages/home/404";
+
+// Protected Route Component
+const AdminRoute = ({ children }) => {
+  const { isLoggedIn, userRole } = useAuth();
+  
+  if (!isLoggedIn || userRole !== 'admin') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
-   
     <AuthProvider>
       <Routes>
-  
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<OverviewPage />} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="users" element={<UsersPage />} />
+          <Route 
+            path="users" 
+            element={
+              <AdminRoute>
+                <UsersPage />
+              </AdminRoute>
+            } 
+          />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="categories" element={<CatregoriesPage />} />
         </Route>
         
-      
         <Route path="/" element={<WebsiteLayout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
@@ -41,10 +55,10 @@ function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
-          </Route>
+          <Route path="unauthorized" element={<NotFound />} />
+        </Route>
       </Routes>
     </AuthProvider>
-
   );
 }
 

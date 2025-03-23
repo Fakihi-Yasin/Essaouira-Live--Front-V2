@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-// UserProfile component that adapts based on user role
 const UserProfile = ({ userData = {} }) => { // Add default empty object as fallback
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -9,7 +8,6 @@ const UserProfile = ({ userData = {} }) => { // Add default empty object as fall
     phone: userData?.phone || '',
     address: userData?.address || '',
     bio: userData?.bio || '',
-    // Additional fields depending on user type
     ...(userData?.role === 'seller' && {
       storeName: userData?.storeName || '',
       businessType: userData?.businessType || '',
@@ -31,9 +29,7 @@ const UserProfile = ({ userData = {} }) => { // Add default empty object as fall
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send updated data to your API
     console.log('Submitting updated profile:', formData);
-    // API call would go here - e.g., updateUserProfile(userData.id, formData)
     setIsEditing(false);
   };
 
