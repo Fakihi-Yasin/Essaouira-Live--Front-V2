@@ -33,7 +33,7 @@ function App() {
           <Route path="categories" element={<CatregoriesPage />} />
         </Route>
         
-        {/* Website routes - will include Navbar via WebsiteLayout */}
+      
         <Route path="/" element={<WebsiteLayout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ShoppingCart, User } from "lucide-react";
 import { requestseller } from "../util/service";
+import toast from 'react-hot-toast'; 
 
 export default function Navbar() {
   const { isLoggedIn, userRole, logout } = useAuth();
@@ -16,16 +17,16 @@ export default function Navbar() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert("You must be logged in.");
+        toast.error("You must be logged in.");
         return;
       }
-
+  
       await requestseller(token);
-      alert("Seller request sent! Wait for admin approval.");
+      toast.success("Seller request sent! Wait for admin approval.");
       setShowModal(false);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to request seller.");
+      toast.error(err.response?.data?.message || "Failed to request seller.");
     }
   };
 

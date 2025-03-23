@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Edit, Trash2, AlertTriangle } from "lucide-react";
 import { userService } from "./UsersService";
 import UpdateUserModal from "./UpdateUserModal";
-import {DeleteConfirmationModal} from "./DeleteConfirmationModal";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 const UsersTable = () => {
   const [users, setUsers] = useState([]);
@@ -13,28 +14,58 @@ const UsersTable = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Modals state
+
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Fetch users on component mount
+  const API_BASE_URL = 'http://localhost:3000';
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filter users when search term or users list changes
   useEffect(() => {
     if (users.length) {
       const filtered = users.filter(
-        (user) => 
-          user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (user) =>
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredUsers(filtered);
     }
   }, [searchTerm, users]);
+
+  const handleApproveSellerRequest = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API_BASE_URL}/users/api/accept-seller/${userId}`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      fetchUsers(); 
+      toast.success("Seller request approved!");
+    } catch (error) {
+      console.error("Error approving seller request:", error);
+      toast.error("Failed to approve seller request");
+    }
+  };
+  
+  const handleRejectSellerRequest = async (userId) => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.patch(`${API_BASE_URL}/users/api/reject-seller/${userId}`,{},{
+        headers:{
+          'Authorization': ` Bearer ${token}`,
+        }
+      });
+      fetchUsers(); 
+      toast.success("Seller request rejected!");
+    } catch (error) {
+      console.error("Error rejecting seller request:", error);
+      toast.error("Failed to reject seller request");
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -148,6 +179,9 @@ const UsersTable = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Seller Request
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -186,26 +220,61 @@ const UsersTable = () => {
 
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.status === "active"
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === "active"
                             ? "bg-green-800 text-green-100"
                             : user.status === "suspended"
-                            ? "bg-yellow-800 text-yellow-100"
-                            : "bg-red-800 text-red-100"
-                        }`}
+                              ? "bg-yellow-800 text-yellow-100"
+                              : "bg-red-800 text-red-100"
+                          }`}
                       >
                         {user.status}
                       </span>
                     </td>
 
+                    <td className="px-6 py-4 whitespace-nowrap">
+  {user.sellerRequest === 'pending' ? (
+    <div className="flex flex-col space-y-2">
+      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-800 text-yellow-100">
+        Pending
+      </span>
+      <div className="flex space-x-2">
+        <button 
+          onClick={() => handleApproveSellerRequest(user._id)}
+          className="text-green-400 hover:text-green-300 text-xs px-2 py-1 bg-green-900 bg-opacity-50 rounded-md"
+        >
+          Approve
+        </button>
+        <button 
+          onClick={() => handleRejectSellerRequest(user._id)}
+          className="text-red-400 hover:text-red-300 text-xs px-2 py-1 bg-red-900 bg-opacity-50 rounded-md"
+        >
+          Reject
+        </button>
+      </div>
+    </div>
+  ) : user.sellerRequest === 'rejected' ? (
+    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-800 text-red-100">
+      Rejected
+    </span>
+  ) : user.role === 'seller' ? (
+    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-800 text-green-100">
+      Approved
+    </span>
+  ) : (
+    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-800 text-gray-100">
+      None
+    </span>
+  )}
+</td>
+
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(user)}
                         className="text-indigo-400 hover:text-indigo-300 mr-4 flex items-center"
                       >
                         <Edit size={16} className="mr-1" /> Edit
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteClick(user)}
                         className="text-red-400 hover:text-red-300 flex items-center mt-2"
                       >
