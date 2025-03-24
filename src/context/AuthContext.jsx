@@ -27,9 +27,10 @@ export function AuthProvider({ children }) {
   }, []);
   
   // Login function
-  const login = (role) => {
+  const login = (role, status) => {
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userRole', role || 'user');
+    localStorage.setItem('status',status || 'active');
     setIsLoggedIn(true);
     setUserRole(role || 'user');
   };

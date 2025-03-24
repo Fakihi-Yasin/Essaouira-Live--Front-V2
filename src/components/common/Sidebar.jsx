@@ -16,7 +16,7 @@ const Sidebar = () => {
 			href: "/",
 		},
 		{ name: "Products", icon: ShoppingBag, color: "#8B5CF6", href: "/dashboard/products" },	
-		...(userRole === 'amine'?[
+		...(userRole === 'admin'?[
 		{ name: "Users", icon: Users, color: "#EC4899", href: "/dashboard/users" },
 		] : []),
 	
