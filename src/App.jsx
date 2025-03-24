@@ -16,8 +16,9 @@ import CartPage from "./pages/home/Cart";
 import ProfilePage from "./pages/home/Profile";
 import CheckoutSuccess from './pages/home/CheckoutSuccess';
 import NotFound  from "./pages/home/404";
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
-// Protected Route Component
 const AdminRoute = ({ children }) => {
   const { isLoggedIn, userRole } = useAuth();
   
@@ -55,6 +56,8 @@ function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="unauthorized" element={<NotFound />} />
         </Route>
       </Routes>

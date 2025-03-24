@@ -64,7 +64,6 @@ const HomePage = () => {
     }
   ];
   
-  // Load cart from localStorage on component mount and update cart count
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCart(savedCart);
@@ -180,8 +179,7 @@ const HomePage = () => {
     };
 
     fetchProducts();
-  }, [selectedCategory]); // Re-fetch when selectedCategory changes
-
+  }, [selectedCategory]); 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
@@ -270,7 +268,7 @@ const HomePage = () => {
     setSelectedCategory(null);
   };
 
-  // Header Component
+
   const Header = () => (    
 <div className="relative z-50">
   <div className="bg-white shadow-md">
@@ -341,7 +339,7 @@ const HomePage = () => {
 
   );
 
-  // Product Modal Component
+ 
   const ProductModal = ({ product, onClose, onAddToCart }) => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <motion.div
