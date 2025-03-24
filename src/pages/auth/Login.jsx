@@ -4,7 +4,6 @@ import axios from "axios"
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 
-
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -27,46 +26,64 @@ export default function Login() {
             email,
             password
         })
-        console.log("response.data", response.data);
-        const data = response.data        
         
-        // Check user status before proceeding with login
+        // Make sure you're accessing the data correctly
+        const data = response.data
+        
+        // Check status before proceeding
         if (data.status === "inactive" || data.status === "suspended") {
-            toast.error(`Your account is ${data.status}. Please contact support for assistance.`)
+            toast.error("Please contact support for assistance.")
             setIsLoading(false)
             return
         }
         
-        if (response.status === 201) {
-            // Store the token
+        // Success case - both 200 and 201 status codes are treated as success
+        if (response.status === 200 || response.status === 201) {
+            // Store token and update auth context
             localStorage.setItem("token", data.access_token)
             
             // Use the login function from context and pass the user role
-            const userRole = data.role || 'user' // Default to 'user' if not provided
+            const userRole = data.role || 'user'
             login(userRole)
             
             toast.success("Login successful!")
+            
+            // Navigate after a short delay
             setTimeout(() => {
-              navigate("/"); 
-            }, 1000);
+              navigate("/") 
+            }, 1000)
         } else {
-            toast.error("Invalid email or password")
+            // This is an edge case - we received a non-error response code that's not 200/201
+            toast.error("Unexpected response from server")
             setIsLoading(false)
         }
     } catch(error) {
-        console.log(error)
+        console.error("Login error:", error)
         setIsLoading(false)
         
-        // Check if the error response contains a status message
-        if (error.response && error.response.data) {
-            const { status } = error.response.data;
-            if (status === "inactive" || status === "suspended") {
-                toast.error(`Your account is ${status}. Please contact support for assistance.`);
-                return;
+        // Improved error handling with better structure
+        if (error.response) {
+            const { data, status } = error.response
+            
+            if (status === 401) {
+                toast.error("Invalid email or password")
+            } else if (data && (data.status === "inactive" || data.status === "suspended")) {
+                toast.error("Please contact support for assistance.")
+            } else if (data && data.message) {
+                toast.error(data.message)
+            } else {
+                toast.error("Login failed. Please try again.")
             }
+        } else if (error.request) {
+            // The request was made but no response was received
+            toast.error("No response from server. Please try again later.")
+        } else {
+            // Something happened in setting up the request
+            toast.error("Login failed. Please try again.")
         }
-        
-        toast.error("Login failed. Please try again.")
+    } finally {
+        // In case we missed setting this somewhere
+        setIsLoading(false)
     }
   }
 
