@@ -1,13 +1,10 @@
-// src/contexts/ProductContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Create axios instance with auth
 const api = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-// Add auth interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -21,7 +18,6 @@ api.interceptors.request.use(
   }
 );
 
-// Create the context
 const ProductContext = createContext();
 
 export const useProducts = () => useContext(ProductContext);
@@ -84,7 +80,7 @@ export const ProductProvider = ({ children }) => {
     try {
       const response = await api.post('/products', formData);
       setProducts([...products, response.data]);
-      await fetchProducts(); // Refresh data and stats
+      await fetchProducts();
       return { success: true };
     } catch (err) {
       console.error("Error adding product:", err);
@@ -103,7 +99,7 @@ export const ProductProvider = ({ children }) => {
     try {
       const response = await api.put(`/products/${id}`, formData);
       setProducts(products.map(p => p._id === id ? response.data : p));
-      await fetchProducts(); // Refresh data and stats
+      await fetchProducts();
       return { success: true };
     } catch (err) {
       console.error("Error updating product:", err);
@@ -122,7 +118,7 @@ export const ProductProvider = ({ children }) => {
     try {
       await api.delete(`/products/${id}`);
       setProducts(products.filter(p => p._id !== id));
-      await fetchProducts(); // Refresh data and stats
+      await fetchProducts();
       return { success: true };
     } catch (err) {
       console.error("Error deleting product:", err);
@@ -136,7 +132,6 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // Toggle product display status
   const toggleProductDisplay = async (id, currentDisplay) => {
     setLoading(true);
     try {

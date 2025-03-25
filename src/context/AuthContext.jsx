@@ -25,8 +25,7 @@ export function AuthProvider({ children }) {
       window.removeEventListener('storage', loadAuthState);
     };
   }, []);
-  
-  // Login function
+
   const login = (role, status) => {
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userRole', role || 'user');
@@ -34,15 +33,14 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(true);
     setUserRole(role || 'user');
   };
-  // Logout function
+
   const logout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userRole');
     setIsLoggedIn(false);
     setUserRole('');
   };
-  
-  // Value to be provided to consumers
+
   const value = {
     isLoggedIn,
     userRole,

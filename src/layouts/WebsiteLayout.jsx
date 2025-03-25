@@ -5,9 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 export default function WebsiteLayout() {
   return (
-    <>
 
-    <Toaster position="top-center" />
 
     <div className="website-layout">
       <Navbar />
@@ -16,7 +14,7 @@ export default function WebsiteLayout() {
       </main>
       <Footer />
     </div>
-    </>
+
 
   );
 }
